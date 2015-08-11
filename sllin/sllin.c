@@ -208,26 +208,29 @@ static int sltty_change_speed(struct tty_struct *tty, unsigned speed)
 	struct ktermios old_termios;
 	int cflag;
 
-	mutex_lock(&tty->termios_mutex);
+	/* mutex_lock(&tty->termios_mutex); */
+  down_write(&tty->termios_rwsem);
 
-	old_termios = *(tty->termios);
+	/* old_termios = *(tty->termios); */
+	old_termios = tty->termios;
 
 	cflag = CS8 | CREAD | CLOCAL | HUPCL;
 	cflag &= ~(CBAUD | CIBAUD);
 	cflag |= BOTHER;
-	tty->termios->c_cflag = cflag;
-	tty->termios->c_oflag = 0;
-	tty->termios->c_lflag = 0;
+	tty->termios.c_cflag = cflag;
+	tty->termios.c_oflag = 0;
+	tty->termios.c_lflag = 0;
 
 	/* Enable interrupt when UART-Break or Framing error received */
-	tty->termios->c_iflag = BRKINT | INPCK;
+	tty->termios.c_iflag = BRKINT | INPCK;
 
 	tty_encode_baud_rate(tty, speed, speed);
 
 	if (tty->ops->set_termios)
 		tty->ops->set_termios(tty, &old_termios);
 
-	mutex_unlock(&tty->termios_mutex);
+	/* mutex_unlock(&tty->termios_mutex); */
+  up_write(&tty->termios_rwsem);
 
 	return 0;
 }
