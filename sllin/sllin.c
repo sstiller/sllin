@@ -62,7 +62,7 @@
 #include <linux/can.h>
 #include <linux/kthread.h>
 #include <linux/hrtimer.h>
-#include "linux/lin_bus.h"
+#include "lin_bus.h"
 
 /* Should be in include/linux/tty.h */
 #define N_SLLIN			25
@@ -303,7 +303,7 @@ static void sllin_write_wakeup(struct tty_struct *tty)
 			return;	/* ongoing concurrent processing */
 
 		clear_bit(SLF_TXBUFF_RQ, &sl->flags);
-		smp_mb__after_clear_bit();
+		smp_mb__after_atomic();
 
 		if (sl->lin_state != SLSTATE_BREAK_SENT)
 			remains = sl->tx_lim - sl->tx_cnt;
@@ -317,7 +317,7 @@ static void sllin_write_wakeup(struct tty_struct *tty)
 			remains -= actual;
 		}
 		clear_bit(SLF_TXBUFF_INPR, &sl->flags);
-		smp_mb__after_clear_bit();
+		smp_mb__after_atomic();
 
 	} while (unlikely(test_bit(SLF_TXBUFF_RQ, &sl->flags)));
 
@@ -751,7 +751,7 @@ static int sllin_send_tx_buff(struct sllin *sl)
 			return 0;	/* ongoing concurrent processing */
 
 		clear_bit(SLF_TXBUFF_RQ, &sl->flags);
-		smp_mb__after_clear_bit();
+		smp_mb__after_atomic();
 
 #ifdef BREAK_BY_BAUD
 		if (sl->lin_state != SLSTATE_BREAK_SENT)
@@ -785,7 +785,7 @@ static int sllin_send_tx_buff(struct sllin *sl)
 				sl->tx_cnt, remains);
 
 		clear_bit(SLF_TXBUFF_INPR, &sl->flags);
-		smp_mb__after_clear_bit();
+		smp_mb__after_atomic();
 
 	} while (unlikely(test_bit(SLF_TXBUFF_RQ, &sl->flags)));
 
@@ -1227,7 +1227,7 @@ static struct sllin *sll_alloc(dev_t line)
 		char name[IFNAMSIZ];
 		sprintf(name, "sllin%d", i);
 
-		dev = alloc_netdev(sizeof(*sl), name, sll_setup);
+		dev = alloc_netdev(sizeof(*sl), name, NET_NAME_UNKNOWN, sll_setup);
 		if (!dev)
 			return NULL;
 		dev->base_addr  = i;
