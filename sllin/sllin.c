@@ -81,11 +81,14 @@ MODULE_AUTHOR("Pavel Pisa <pisa@cmp.felk.cvut.cz>");
 
 static bool master = true;
 static int baudrate; /* Use LIN_DEFAULT_BAUDRATE when not set */
+static int timeout_chars; /* Use SLLIN_CHARS_TO_TIMEOUT if not set */
 
 module_param(master, bool, 0);
 MODULE_PARM_DESC(master, "LIN interface is Master device");
 module_param(baudrate, int, 0);
 MODULE_PARM_DESC(baudrate, "Baudrate of LIN interface");
+module_param(timeout_chars, int, 0);
+MODULE_PARM_DESC(timeout_chars, "number of chars before a timeout is recognized");
 
 static int maxdev = 10;		/* MAX number of SLLIN channels;
 				   This can be overridden with
@@ -1311,9 +1314,13 @@ static int sllin_open(struct tty_struct *tty)
 		hrtimer_init(&sl->rx_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
 		sl->rx_timer.function = sllin_rx_timeout_handler;
 		/* timeval_to_ktime(msg_head->ival1); */
+		if(timeout_chars == 0)
+			timeout_chars = SLLIN_CHARS_TO_TIMEOUT;
+
 		sl->rx_timer_timeout = ns_to_ktime(
 			(1000000000l / sl->lin_baud) *
-			SLLIN_SAMPLES_PER_CHAR * SLLIN_CHARS_TO_TIMEOUT);
+			SLLIN_SAMPLES_PER_CHAR * timeout_chars);
+pr_debug("sllin: timeout set to %d ms\n", ((1000000000l / sl->lin_baud) * SLLIN_SAMPLES_PER_CHAR * timeout_chars) / 1000000);
 
 		set_bit(SLF_INUSE, &sl->flags);
 
