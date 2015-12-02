@@ -1320,7 +1320,7 @@ static int sllin_open(struct tty_struct *tty)
 		sl->rx_timer_timeout = ns_to_ktime(
 			(1000000000l / sl->lin_baud) *
 			SLLIN_SAMPLES_PER_CHAR * timeout_chars);
-pr_debug("sllin: timeout set to %d ms\n", ((1000000000l / sl->lin_baud) * SLLIN_SAMPLES_PER_CHAR * timeout_chars) / 1000000);
+pr_debug("sllin: timeout set to %ld ms\n", ((1000000000l / sl->lin_baud) * SLLIN_SAMPLES_PER_CHAR * timeout_chars) / 1000000);
 
 		set_bit(SLF_INUSE, &sl->flags);
 
