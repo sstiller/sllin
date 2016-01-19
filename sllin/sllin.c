@@ -478,10 +478,10 @@ static void sllin_master_receive_buf(struct tty_struct *tty,
 #ifndef BREAK_BY_BAUD
 		/* We didn't receive Break character -- fake it! */
 		if ((sl->rx_cnt == SLLIN_BUFF_BREAK) && (*cp == 0x55)) {
-			netdev_dbg(sl->dev, "LIN_RX[%d]: 0x00\n", sl->rx_cnt);
+      netdev_dbg(sl->dev, "LIN_RX[%d]: 0x00 (fake break)\n", sl->rx_cnt);
 			sl->rx_buff[sl->rx_cnt++] = 0x00;
 		}
-#endif /* BREAK_BY_BAUD */
+#endif /* not BREAK_BY_BAUD */
 
 		if (sl->rx_cnt < SLLIN_BUFF_LEN) {
 			netdev_dbg(sl->dev, "LIN_RX[%d]: 0x%02x\n", sl->rx_cnt, *cp);
@@ -493,9 +493,9 @@ static void sllin_master_receive_buf(struct tty_struct *tty,
 	if (sl->rx_cnt >= sl->rx_expect) {
 		set_bit(SLF_RXEVENT, &sl->flags);
 		wake_up(&sl->kwt_wq);
-		netdev_dbg(sl->dev, "sllin_receive_buf count %d, wakeup\n", sl->rx_cnt);
+    netdev_dbg(sl->dev, "sllin_receive_buf count %d, wakeup (rx_expect = %d)\n", sl->rx_cnt, sl->rx_expect);
 	} else {
-		netdev_dbg(sl->dev, "sllin_receive_buf count %d, waiting\n", sl->rx_cnt);
+    netdev_dbg(sl->dev, "sllin_receive_buf count %d, waiting (rx_expect = %d)\n", sl->rx_cnt, sl->rx_expect);
 	}
 }
 
@@ -1261,6 +1261,7 @@ static int sllin_open(struct tty_struct *tty)
 {
 	struct sllin *sl;
 	int err;
+  unsigned long timeout_ns = 0;
 
 	pr_debug("sllin: %s() invoked\n", __func__);
 
@@ -1317,10 +1318,10 @@ static int sllin_open(struct tty_struct *tty)
 		if(timeout_chars == 0)
 			timeout_chars = SLLIN_CHARS_TO_TIMEOUT;
 
-		sl->rx_timer_timeout = ns_to_ktime(
-			(1000000000l / sl->lin_baud) *
-			SLLIN_SAMPLES_PER_CHAR * timeout_chars);
-pr_debug("sllin: timeout set to %ld ms\n", ((1000000000l / sl->lin_baud) * SLLIN_SAMPLES_PER_CHAR * timeout_chars) / 1000000);
+    timeout_ns = (1000000000l / sl->lin_baud) *
+                               SLLIN_SAMPLES_PER_CHAR * timeout_chars;
+    sl->rx_timer_timeout = ns_to_ktime(timeout_ns);
+    pr_debug("sllin: timeout set to %ld ms\n", timeout_ns / 1000000);
 
 		set_bit(SLF_INUSE, &sl->flags);
 
