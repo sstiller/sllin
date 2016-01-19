@@ -2,4 +2,6 @@
 *.o
 *.cmd
 sllin/.tmp_versions/
+sllin/Module.symvers
+sllin/modules.order
 
