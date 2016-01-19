@@ -478,7 +478,7 @@ static void sllin_master_receive_buf(struct tty_struct *tty,
 #ifndef BREAK_BY_BAUD
 		/* We didn't receive Break character -- fake it! */
 		if ((sl->rx_cnt == SLLIN_BUFF_BREAK) && (*cp == 0x55)) {
-			netdev_dbg(sl->dev, "LIN_RX[%d]: 0x00\n", sl->rx_cnt);
+			netdev_dbg(sl->dev, "LIN_RX[%d]: 0x00 (fake break)\n", sl->rx_cnt);
 			sl->rx_buff[sl->rx_cnt++] = 0x00;
 		}
 #endif /* not BREAK_BY_BAUD */
@@ -493,9 +493,9 @@ static void sllin_master_receive_buf(struct tty_struct *tty,
 	if (sl->rx_cnt >= sl->rx_expect) {
 		set_bit(SLF_RXEVENT, &sl->flags);
 		wake_up(&sl->kwt_wq);
-		netdev_dbg(sl->dev, "sllin_receive_buf count %d, wakeup\n", sl->rx_cnt);
+    netdev_dbg(sl->dev, "sllin_receive_buf count %d, wakeup (rx_expect = %d)\n", sl->rx_cnt, sl->rx_expect);
 	} else {
-		netdev_dbg(sl->dev, "sllin_receive_buf count %d, waiting\n", sl->rx_cnt);
+    netdev_dbg(sl->dev, "sllin_receive_buf count %d, waiting (rx_expect = %d)\n", sl->rx_cnt, sl->rx_expect);
 	}
 }
 
