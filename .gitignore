@@ -1,6 +1,5 @@
-*.ko.cmd
-*.o.cmd
 *.ko
 *.o
+*.cmd
 sllin/.tmp_versions/
 
