@@ -243,6 +243,8 @@ static void sllin_send_canfr(struct sllin *sl, canid_t id, char *data, int len)
 {
 	struct sk_buff *skb;
 	struct can_frame cf;
+	
+  netdev_dbg(sl->dev, "%s() called.\n", __func__);
 
 	cf.can_id = id;
 	cf.can_dlc = len;
@@ -260,6 +262,7 @@ static void sllin_send_canfr(struct sllin *sl, canid_t id, char *data, int len)
 	memcpy(skb_put(skb, sizeof(struct can_frame)),
 	       &cf, sizeof(struct can_frame));
 	netif_rx(skb);
+  netdev_dbg(sl->dev, "%s() netif_rx called.\n", __func__);
 
 	sl->dev->stats.rx_packets++;
 	sl->dev->stats.rx_bytes += cf.can_dlc;
@@ -347,6 +350,7 @@ static netdev_tx_t sll_xmit(struct sk_buff *skb, struct net_device *dev)
 {
 	struct sllin *sl = netdev_priv(dev);
 	struct can_frame *cf;
+	netdev_dbg(sl->dev, "%s() called.\n", __func__);
 
 	if (skb->len != sizeof(struct can_frame))
 		goto err_out;
