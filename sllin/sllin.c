@@ -243,6 +243,7 @@ static void sllin_send_canfr(struct sllin *sl, canid_t id, char *data, int len)
 {
 	struct sk_buff *skb;
 	struct can_frame cf;
+  int status = 0;
 	
   netdev_dbg(sl->dev, "%s() called.\n", __func__);
 
@@ -261,8 +262,8 @@ static void sllin_send_canfr(struct sllin *sl, canid_t id, char *data, int len)
 	skb->ip_summed = CHECKSUM_UNNECESSARY;
 	memcpy(skb_put(skb, sizeof(struct can_frame)),
 	       &cf, sizeof(struct can_frame));
-	netif_rx(skb);
-  netdev_dbg(sl->dev, "%s() netif_rx called.\n", __func__);
+	status = netif_rx(skb);
+  netdev_dbg(sl->dev, "%s() netif_rx called. status = %d.\n", __func__, status);
 
 	sl->dev->stats.rx_packets++;
 	sl->dev->stats.rx_bytes += cf.can_dlc;
